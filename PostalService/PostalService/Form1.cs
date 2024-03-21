@@ -9,6 +9,7 @@ namespace PostalService
     {
         IPostalService _PostalService;
         IMemberRepository _MemberRepository;
+        ÑompanyMember _ÑurrentMember;
         public Form1(IPostalService postalService, IMemberRepository memberRepository)
         {
             InitializeComponent();
@@ -23,35 +24,32 @@ namespace PostalService
                 return;
 
             await _MemberRepository.AddAndSave(viewingLetter.Member);
+            _ÑurrentMember = viewingLetter.Member;
 
-            if(!(await _PostalService.DownloadAllIncomingLetters()))
+            if (!(await _PostalService.DownloadAllIncomingLetters()))
                 MessageBox.Show(_PostalService.Exception.Message);
 
             var range = await _MemberRepository.GetAllMembers();
             employees.Items.Clear();
             employees.Items.AddRange(range.ToArray());
 
-            MessageBox.Show($"Ïîëüçîâàòåëü {_PostalService.Member.Login} äîáàâëåí");
+            MessageBox.Show($"Ïîëüçîâàòåëü {_ÑurrentMember.Login} äîáàâëåí");
         }
 
         private async void employees_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string login = employees.SelectedItem.ToString();
+            string login = employees.SelectedItem?.ToString() ?? null;
             if (login == null)
                 return;
 
             var ñompanyMember = await _MemberRepository.GetMember(login);
-            await _PostalService.SetCompanyMember(ñompanyMember);
+            _ÑurrentMember = ñompanyMember;
+            WriteLettersArray(_ÑurrentMember.ListWriting);
 
-            foreach (var writing in _PostalService.Member.ListWriting)
+            if (!(await _PostalService.SetCompanyMember(ñompanyMember)))
             {
-                var listItem = new
-                {
-                    Text = writing.Title,
-                    Value = writing
-                };
-
-                letters.Items.Add(listItem);
+                MessageBox.Show(_PostalService.Exception.Message);
+                return;
             }
         }
 
@@ -59,8 +57,14 @@ namespace PostalService
         {
             if (_PostalService.InternalTasks == 0)
             {
+                if (!(await _PostalService.SetCompanyMember(_ÑurrentMember)))
+                {
+                    MessageBox.Show(_PostalService.Exception.Message);
+                    return;
+                }
+
                 var NewMail = await _PostalService.CheckStartDownloadingEmails();
-                if(NewMail == null)
+                if (NewMail == null)
                 {
                     MessageBox.Show(_PostalService.Exception.Message);
                     return;
@@ -69,10 +73,12 @@ namespace PostalService
                 {
                     await _PostalService.CreateTaskDownloadEmails(NewMail.ToList());
                     MessageBox.Show($"İëåêòğîííàÿ ïî÷òà ïîëüçîâàòåëÿ {_PostalService.Member.Login} îáíîâèëàñü.");
-                    return;
+                    WriteLettersArray(_PostalService.Member.ListWriting);
                 }
-
-                WriteLettersArray(_PostalService.Member.ListWriting);
+                else
+                {
+                    MessageBox.Show($"İëåêòğîííàÿ ïî÷òà çàãğóæåíà.");
+                }
             }
             else
             {
@@ -90,10 +96,25 @@ namespace PostalService
 
         private void WriteLettersArray(IEnumerable<Writing> ñompanyMembers)
         {
-            foreach (var writing in ñompanyMembers)
+            letters.Items.Clear();
+            var members = ñompanyMembers.OrderByDescending(x => x.Date);
+            foreach (var writing in members)
             {
                 letters.Items.Add(writing);
             }
+        }
+
+        private async void letters_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var Item = (Writing)letters.SelectedItem;
+            if (Item == null)
+                return;
+
+            letterDate.Text = Item.Date.ToString();
+            letterTitle.Text = Item.Title;
+            emailSenderName.Text = Item.Sender;
+            emailRecipientName.Text = Item.Destination;
+            richTextBox1.Text = Item.Context;
         }
     }
 }

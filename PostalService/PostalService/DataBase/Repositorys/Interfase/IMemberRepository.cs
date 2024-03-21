@@ -20,5 +20,7 @@ namespace PostalService.DataBase.Repositorys.Interfase
         public Task UpdataListWriting(int id, IEnumerable<Writing> ListWriting);
 
         public Task UpdataWriting(int id, Writing writing);
+
+        public Task Save();
     }
 }

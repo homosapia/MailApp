@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PostalService.DataBase.Repositorys.Interfase;
 using PostalService.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace PostalService.DataBase.Repositorys
 {
@@ -52,7 +50,10 @@ namespace PostalService.DataBase.Repositorys
         {
             writing.СompanyMemberId = id;
             await _BaseDbContext.Writings.AddAsync(writing);
+        }
 
+        public async Task Save()
+        {
             await _BaseDbContext.SaveChangesAsync();
         }
     }

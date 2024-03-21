@@ -72,8 +72,8 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
-            splitContainer1.Size = new Size(800, 450);
-            splitContainer1.SplitterDistance = 145;
+            splitContainer1.Size = new Size(789, 460);
+            splitContainer1.SplitterDistance = 143;
             splitContainer1.TabIndex = 0;
             // 
             // tableLayoutPanel1
@@ -88,7 +88,7 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(145, 450);
+            tableLayoutPanel1.Size = new Size(143, 460);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // AddEmployee
@@ -96,7 +96,7 @@
             AddEmployee.Dock = DockStyle.Fill;
             AddEmployee.Location = new Point(3, 3);
             AddEmployee.Name = "AddEmployee";
-            AddEmployee.Size = new Size(139, 44);
+            AddEmployee.Size = new Size(137, 44);
             AddEmployee.TabIndex = 0;
             AddEmployee.Text = "Добавить сотрудника";
             AddEmployee.UseVisualStyleBackColor = true;
@@ -110,7 +110,7 @@
             employees.ItemHeight = 25;
             employees.Location = new Point(3, 53);
             employees.Name = "employees";
-            employees.Size = new Size(139, 394);
+            employees.Size = new Size(137, 404);
             employees.TabIndex = 1;
             employees.SelectedIndexChanged += employees_SelectedIndexChanged;
             // 
@@ -127,8 +127,8 @@
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(tableLayoutPanel2);
-            splitContainer2.Size = new Size(651, 450);
-            splitContainer2.SplitterDistance = 174;
+            splitContainer2.Size = new Size(642, 460);
+            splitContainer2.SplitterDistance = 171;
             splitContainer2.TabIndex = 0;
             // 
             // tableLayoutPanel4
@@ -144,7 +144,7 @@
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.Size = new Size(174, 450);
+            tableLayoutPanel4.Size = new Size(171, 460);
             tableLayoutPanel4.TabIndex = 0;
             // 
             // letters
@@ -155,16 +155,17 @@
             letters.ItemHeight = 25;
             letters.Location = new Point(3, 3);
             letters.Name = "letters";
-            letters.Size = new Size(168, 404);
+            letters.Size = new Size(165, 414);
             letters.TabIndex = 1;
+            letters.SelectedIndexChanged += letters_SelectedIndexChanged;
             // 
             // button1
             // 
             button1.Dock = DockStyle.Fill;
             button1.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button1.Location = new Point(3, 413);
+            button1.Location = new Point(3, 423);
             button1.Name = "button1";
-            button1.Size = new Size(168, 34);
+            button1.Size = new Size(165, 34);
             button1.TabIndex = 2;
             button1.Text = "Обновить";
             button1.UseVisualStyleBackColor = true;
@@ -182,12 +183,11 @@
             tableLayoutPanel2.Location = new Point(0, 0);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 4;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 80F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 69F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 317F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.Size = new Size(473, 450);
+            tableLayoutPanel2.Size = new Size(467, 460);
             tableLayoutPanel2.TabIndex = 0;
             // 
             // letterTitle
@@ -197,7 +197,7 @@
             letterTitle.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             letterTitle.Location = new Point(3, 0);
             letterTitle.Name = "letterTitle";
-            letterTitle.Size = new Size(467, 44);
+            letterTitle.Size = new Size(461, 80);
             letterTitle.TabIndex = 0;
             letterTitle.Text = "Титул письма";
             letterTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -212,12 +212,12 @@
             tableLayoutPanel3.Controls.Add(emailSenderName, 0, 1);
             tableLayoutPanel3.Controls.Add(emailRecipientName, 1, 1);
             tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(3, 47);
+            tableLayoutPanel3.Location = new Point(3, 83);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 2;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 66.6666641F));
-            tableLayoutPanel3.Size = new Size(467, 63);
+            tableLayoutPanel3.Size = new Size(461, 63);
             tableLayoutPanel3.TabIndex = 1;
             // 
             // label1
@@ -227,7 +227,7 @@
             label1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             label1.Location = new Point(3, 0);
             label1.Name = "label1";
-            label1.Size = new Size(227, 21);
+            label1.Size = new Size(224, 21);
             label1.TabIndex = 0;
             label1.Text = "от кого";
             label1.TextAlign = ContentAlignment.MiddleCenter;
@@ -237,9 +237,9 @@
             label2.AutoSize = true;
             label2.Dock = DockStyle.Fill;
             label2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            label2.Location = new Point(236, 0);
+            label2.Location = new Point(233, 0);
             label2.Name = "label2";
-            label2.Size = new Size(228, 21);
+            label2.Size = new Size(225, 21);
             label2.TabIndex = 1;
             label2.Text = "кому";
             label2.TextAlign = ContentAlignment.MiddleCenter;
@@ -251,7 +251,7 @@
             emailSenderName.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             emailSenderName.Location = new Point(3, 21);
             emailSenderName.Name = "emailSenderName";
-            emailSenderName.Size = new Size(227, 42);
+            emailSenderName.Size = new Size(224, 42);
             emailSenderName.TabIndex = 2;
             emailSenderName.Text = "Имя отправителя";
             emailSenderName.TextAlign = ContentAlignment.MiddleCenter;
@@ -261,9 +261,9 @@
             emailRecipientName.AutoSize = true;
             emailRecipientName.Dock = DockStyle.Fill;
             emailRecipientName.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            emailRecipientName.Location = new Point(236, 21);
+            emailRecipientName.Location = new Point(233, 21);
             emailRecipientName.Name = "emailRecipientName";
-            emailRecipientName.Size = new Size(228, 42);
+            emailRecipientName.Size = new Size(225, 42);
             emailRecipientName.TabIndex = 3;
             emailRecipientName.Text = "Имя получателя";
             emailRecipientName.TextAlign = ContentAlignment.MiddleCenter;
@@ -272,9 +272,9 @@
             // 
             letterDate.AutoSize = true;
             letterDate.Dock = DockStyle.Fill;
-            letterDate.Location = new Point(3, 430);
+            letterDate.Location = new Point(3, 440);
             letterDate.Name = "letterDate";
-            letterDate.Size = new Size(467, 20);
+            letterDate.Size = new Size(461, 20);
             letterDate.TabIndex = 2;
             letterDate.Text = "дата время";
             letterDate.TextAlign = ContentAlignment.TopCenter;
@@ -282,9 +282,9 @@
             // richTextBox1
             // 
             richTextBox1.Dock = DockStyle.Fill;
-            richTextBox1.Location = new Point(3, 116);
+            richTextBox1.Location = new Point(3, 152);
             richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(467, 311);
+            richTextBox1.Size = new Size(461, 285);
             richTextBox1.TabIndex = 3;
             richTextBox1.Text = "";
             // 
@@ -292,7 +292,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(789, 460);
             Controls.Add(splitContainer1);
             Name = "Form1";
             Text = "Form1";

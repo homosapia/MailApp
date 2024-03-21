@@ -24,6 +24,7 @@ namespace PostalService.Domain
             _WritingsTask = new List<Task>();
         }
 
+        Semaphore semaphore = new Semaphore(1, 1);
         public int InternalTasks => _WritingsTask.Count(t => t.Status != TaskStatus.RanToCompletion);
 
         public СompanyMember Member { get; private set; }
@@ -32,8 +33,21 @@ namespace PostalService.Domain
 
         public async Task<bool> SetCompanyMember(СompanyMember сompanyMember)
         {
-            _ImapClient = new ImapClient();
+            if (сompanyMember == null)
+            {
+                Exception = new Exception("Выберите сотрудника");
+                return false;
+            }
 
+            if (InternalTasks != 0)
+            {
+                var tasks = _WritingsTask.Where(t => t.Status == TaskStatus.Running);
+
+                Exception = new Exception($"Подождите, получения писем {Member.Login}. Осталось: {InternalTasks}");
+                return false;
+            }
+
+            _ImapClient = new ImapClient();
             try
             {
                 await _ImapClient.ConnectAsync(сompanyMember.IncomingIMAP);
@@ -53,7 +67,6 @@ namespace PostalService.Domain
                 Exception = new Exception("Пользователь указан неверно");
                 return false;
             }
-
             Member = сompanyMember;
 
             return true;
@@ -78,6 +91,12 @@ namespace PostalService.Domain
         {
             if (!(await IsAuthorized()))
                 return false;
+
+            if(InternalTasks != 0)
+            {
+                Exception = new Exception($"Невозможно начать загрузку для нового сотрудника. Завершается загрузка для пользователя {Member.Login}. Осталось: {InternalTasks}");
+                return false;
+            }
 
             try 
             {
@@ -104,7 +123,6 @@ namespace PostalService.Domain
             }
         }
 
-        Semaphore semaphore = new Semaphore(1, 1);
         public async Task CreateTaskDownloadEmails(IList<MailKit.UniqueId> uids)
         {
             object controlRoot = new object(); 
@@ -114,12 +132,12 @@ namespace PostalService.Domain
                 Task task = new Task(async () =>
                 {
                     semaphore.WaitOne();
-                    var fullMessage = await _ImapClient.Inbox.GetMessageAsync(uid);
-                    
+                    MimeMessage fullMessage = await _ImapClient.Inbox.GetMessageAsync(uid);
+
                     var writing = new Writing
                     {
                         MailId = new Models.UniqueId(uid),
-                        Title = fullMessage.Subject,
+                        Title = fullMessage?.Subject ?? string.Empty,
                         Date = fullMessage.Date.UtcDateTime,
                         Destination = string.Join(", ", fullMessage.To.Mailboxes.Select(x => x.Address)),
                         Sender = string.Join(", ", fullMessage.From.Mailboxes.Select(x => x.Address)),
@@ -128,19 +146,18 @@ namespace PostalService.Domain
 
                     Member.ListWriting.Add(writing);
                     await _MemberRepository.UpdataWriting(Member.Id, writing);
-
                     semaphore.Release();
                 });
-
                 task.Start();
                 writingsTask.Add(task);
             }
 
             _WritingsTask = writingsTask;
 
-            await Task.Run(async () =>
+            await Task.Run(async () => 
             {
-                await Task.WhenAll(_WritingsTask.ToArray());
+                await Task.WhenAll(_WritingsTask);
+                await _MemberRepository.Save();
             });
         }
 
@@ -152,55 +169,43 @@ namespace PostalService.Domain
             {
                 builder.AppendLine(textPart.Text);
             }
-            else
-            {
-                var multipart = (Multipart)message.Body;
-                foreach (var part in multipart)
-                {
-                    if (part is TextPart textPart2)
-                    {
-                        builder.AppendLine(textPart2.Text);
-                    }
-                    else if (part is Multipart multipart2)
-                    {
-                        await GetTextFromMultipart(multipart2, builder);
-                    }
-                }
-            }
             return builder.ToString();
-        }
-
-        private async Task GetTextFromMultipart(Multipart multipart, StringBuilder builder)
-        {
-            foreach (var part in multipart)
-            {
-                if (part is TextPart textPart)
-                {
-                    builder.AppendLine(textPart.Text);
-                }
-                else if (part is Multipart multipart2)
-                {
-                    await GetTextFromMultipart(multipart2, builder);
-                }
-            }
         }
 
         private async Task<bool> IsAuthorized()
         {
+            if(_ImapClient == null)
+            {
+                Exception = new Exception("Выберите сотрудника");
+                return false;
+            }
+
             if (!_ImapClient.IsConnected)
             {
                 try
                 {
                     await _ImapClient.ConnectAsync(Member.IncomingIMAP);
-                    await _ImapClient.AuthenticateAsync(Member.Login, Member.Password);
-                    return true;
                 }
                 catch
                 {
-                    Exception = new Exception("Пользователь не выбран");
+                    Exception = new Exception("Ошибка при коннекте IMAP");
                     return false;
                 }
             }
+
+            if (!_ImapClient.IsAuthenticated)
+            {
+                try
+                {
+                    await _ImapClient.AuthenticateAsync(Member.Login, Member.Password);
+                }
+                catch
+                {
+                    Exception = new Exception("Сотрудник не выбран");
+                    return false;
+                }
+            }
+
 
             return true;
         } 

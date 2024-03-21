@@ -1,11 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using MimeKit;
-using PostalService.DataBase;
-using PostalService.DataBase.Repositorys;
 using PostalService.DataBase.Repositorys.Interfase;
 using PostalService.Domain;
 using PostalService.Models;
-using System.Text;
 
 namespace PostalService
 {
@@ -27,7 +23,9 @@ namespace PostalService
                 return;
 
             await _MemberRepository.AddAndSave(viewingLetter.Member);
-            await _PostalService.DownloadAllIncomingLetters();
+
+            if(!(await _PostalService.DownloadAllIncomingLetters()))
+                MessageBox.Show(_PostalService.Exception.Message);
 
             var range = await _MemberRepository.GetAllMembers();
             employees.Items.Clear();
@@ -38,9 +36,23 @@ namespace PostalService
 
         private async void employees_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ÑompanyMember ñompanyMember = (ÑompanyMember)employees.SelectedItem;
-            ñompanyMember = await _MemberRepository.GetMember(ñompanyMember.Id);
+            string login = employees.SelectedItem.ToString();
+            if (login == null)
+                return;
+
+            var ñompanyMember = await _MemberRepository.GetMember(login);
             await _PostalService.SetCompanyMember(ñompanyMember);
+
+            foreach (var writing in _PostalService.Member.ListWriting)
+            {
+                var listItem = new
+                {
+                    Text = writing.Title,
+                    Value = writing
+                };
+
+                letters.Items.Add(listItem);
+            }
         }
 
         private async void UpdatingLettersList_Click(object sender, EventArgs e)
@@ -56,23 +68,32 @@ namespace PostalService
                 if (NewMail.Any())
                 {
                     await _PostalService.CreateTaskDownloadEmails(NewMail.ToList());
-                    MessageBox.Show($"Ýëåêòðîííàÿ ïî÷òà ïîëüçîâàòåëÿ {_PostalService.Member.Login} íà÷àëà îáíîâëÿòüñÿ. Îñòàëîñü çàãðóçèòü: { _PostalService.InternalTasks}");
+                    MessageBox.Show($"Ýëåêòðîííàÿ ïî÷òà ïîëüçîâàòåëÿ {_PostalService.Member.Login} îáíîâèëàñü.");
                     return;
                 }
 
-                letters.Items.AddRange(_PostalService.Member.ListWriting.ToArray());
-
+                WriteLettersArray(_PostalService.Member.ListWriting);
             }
             else
             {
-                MessageBox.Show($"Äëÿ ïîëüçîâàòåëÿ {_PostalService.Member.Login} ïðîèñõîäèò çàãðóçêà ïèñåì. Îñòàëîñü çàãðóçèòü: {_PostalService.InternalTasks}");
+                MessageBox.Show($"Îáíîâëåíèå íå âîçìîæíî. Äëÿ ïîëüçîâàòåëÿ {_PostalService.Member.Login} ïðîèñõîäèò çàãðóçêà ïèñåì. Îñòàëîñü çàãðóçèòü: {_PostalService.InternalTasks}");
+
+                WriteLettersArray(_PostalService.Member.ListWriting);
             }
         }
 
         private async void Form1_Load(object sender, EventArgs e)
         {
             var range = await _MemberRepository.GetAllMembers();
-            employees.Items.AddRange(range.ToArray());
+            employees.Items.AddRange(range.Select(x => x.Login).ToArray());
+        }
+
+        private void WriteLettersArray(IEnumerable<Writing> ñompanyMembers)
+        {
+            foreach (var writing in ñompanyMembers)
+            {
+                letters.Items.Add(writing);
+            }
         }
     }
 }

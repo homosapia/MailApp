@@ -1,19 +1,12 @@
 ﻿using MailKit;
 using MailKit.Net.Imap;
-using MailKit.Net.Pop3;
 using MailKit.Search;
-using MailKit.Security;
-using Microsoft.Identity.Client;
 using MimeKit;
-using PostalService.DataBase;
 using PostalService.DataBase.Repositorys.Interfase;
 using PostalService.Models;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Threading;
 using System.Xml;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace PostalService.Domain
 {
@@ -28,6 +21,7 @@ namespace PostalService.Domain
         public KitService(IMemberRepository memberRepository)
         {
             _MemberRepository = memberRepository;
+            _WritingsTask = new List<Task>();
         }
 
         public int InternalTasks => _WritingsTask.Count(t => t.Status != TaskStatus.RanToCompletion);
@@ -38,32 +32,31 @@ namespace PostalService.Domain
 
         public async Task<bool> SetCompanyMember(СompanyMember сompanyMember)
         {
-            using (_ImapClient = new ImapClient())
+            _ImapClient = new ImapClient();
+
+            try
             {
-                try
-                {
-                    await _ImapClient.ConnectAsync(сompanyMember.IncomingIMAP);
-                }
-                catch
-                {
-                    Exception = new Exception("Хост IMAP указан неправильно");
-                    return false;
-                }
-
-                try
-                {
-                    await _ImapClient.AuthenticateAsync(сompanyMember.Login, сompanyMember.Password);
-                }
-                catch
-                {
-                    Exception = new Exception("Пользователь указан неверно");
-                    return false;
-                }
-
-                Member = сompanyMember;
-
-                return true;
+                await _ImapClient.ConnectAsync(сompanyMember.IncomingIMAP);
             }
+            catch
+            {
+                Exception = new Exception("Хост IMAP указан неправильно");
+                return false;
+            }
+
+            try
+            {
+                await _ImapClient.AuthenticateAsync(сompanyMember.Login, сompanyMember.Password);
+            }
+            catch
+            {
+                Exception = new Exception("Пользователь указан неверно");
+                return false;
+            }
+
+            Member = сompanyMember;
+
+            return true;
         }
 
         public async Task<IEnumerable<MailKit.UniqueId>> CheckStartDownloadingEmails()
@@ -77,7 +70,7 @@ namespace PostalService.Domain
 
             СompanyMember dbMember = await _MemberRepository.GetMember(Member.Id);
             var memberUids = dbMember.ListWriting.Select(u => u.MailId);
-            var NewUids = uids.Where(x => memberUids.Any(u => u.Same(x)));
+            var NewUids = uids.Where(x => !memberUids.Any(u => u.Same(x)));
             return NewUids;
         }
 
@@ -88,14 +81,17 @@ namespace PostalService.Domain
 
             try 
             {
-                var inbox = _ImapClient.Inbox;
-                inbox.Open(FolderAccess.ReadOnly);
-                var uids = inbox.Search(SearchQuery.All);
+                var uids = await CheckStartDownloadingEmails();
+                if (uids == null)
+                {
+                    return false;
+                }
+
 
                 if (Member.ListWriting == null)
                     Member.ListWriting = new List<Writing>();
 
-                await CreateTaskDownloadEmails(uids);
+                await CreateTaskDownloadEmails(uids.ToList());
 
                 _ImapClient.Disconnect(true);
 
@@ -108,40 +104,44 @@ namespace PostalService.Domain
             }
         }
 
-
+        Semaphore semaphore = new Semaphore(1, 1);
         public async Task CreateTaskDownloadEmails(IList<MailKit.UniqueId> uids)
         {
+            object controlRoot = new object(); 
             var writingsTask = new List<Task>();
             foreach (var uid in uids)
             {
                 Task task = new Task(async () =>
                 {
+                    semaphore.WaitOne();
                     var fullMessage = await _ImapClient.Inbox.GetMessageAsync(uid);
-
+                    
                     var writing = new Writing
                     {
-                        MailId = new UniqueId(uid),
-                        Tityle = fullMessage.Subject,
-                        Date = fullMessage.Date.Date,
+                        MailId = new Models.UniqueId(uid),
+                        Title = fullMessage.Subject,
+                        Date = fullMessage.Date.UtcDateTime,
                         Destination = string.Join(", ", fullMessage.To.Mailboxes.Select(x => x.Address)),
                         Sender = string.Join(", ", fullMessage.From.Mailboxes.Select(x => x.Address)),
                         Context = await GetTextFromMessage(fullMessage)
                     };
 
                     Member.ListWriting.Add(writing);
+                    await _MemberRepository.UpdataWriting(Member.Id, writing);
+
+                    semaphore.Release();
                 });
 
                 task.Start();
                 writingsTask.Add(task);
             }
 
-            await Task.Run(() =>
-            {
-                Task.WaitAll(_WritingsTask.ToArray());
-                _MemberRepository.UpdataListWriting(Member.Id, Member.ListWriting);
-            });
-
             _WritingsTask = writingsTask;
+
+            await Task.Run(async () =>
+            {
+                await Task.WhenAll(_WritingsTask.ToArray());
+            });
         }
 
         private async Task<string> GetTextFromMessage(MimeMessage message)

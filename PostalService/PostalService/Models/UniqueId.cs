@@ -4,29 +4,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PostalService.Domain
+namespace PostalService.Models
 {
     public class UniqueId
     {
-        public UniqueId(uint Id, uint Validity) 
-        {
-            this.Id = Id;
-            this.Validity = Validity;
-        }
+        public UniqueId() { }
 
         public UniqueId(MailKit.UniqueId uniqueId)
         {
-            this.Id = uniqueId.Id;
-            this.Validity = uniqueId.Validity;
+            UintId = uniqueId.Id;
+            UintValidity = uniqueId.Validity;
         }
 
-        public uint Id { get; set; }
+        public int Id { get; set; }
 
-        public uint Validity { get; set; }
+        public int WritingId { get; set; }
+
+        public uint UintId { get; set; }
+
+        public uint UintValidity { get; set; }
 
         public bool Same(UniqueId uniqueId)
         {
-            if (this.Id == uniqueId.Id && this.Validity == uniqueId.Validity)
+            if (UintId == uniqueId.Id && UintId == uniqueId.UintValidity)
                 return true;
 
             return false;
@@ -34,7 +34,7 @@ namespace PostalService.Domain
 
         public bool Same(MailKit.UniqueId uniqueId)
         {
-            if (this.Id == uniqueId.Id && this.Validity == uniqueId.Validity)
+            if (UintId == uniqueId.Id && UintValidity == uniqueId.Validity)
                 return true;
 
             return false;

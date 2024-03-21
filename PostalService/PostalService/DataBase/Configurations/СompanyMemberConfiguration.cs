@@ -14,6 +14,9 @@ namespace PostalService.DataBase.Configurations
         public void Configure(EntityTypeBuilder<СompanyMember> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.HasMany(pt => pt.ListWriting)
+                    .WithOne()
+                    .HasForeignKey(te => te.СompanyMemberId);
         }
     }
 }

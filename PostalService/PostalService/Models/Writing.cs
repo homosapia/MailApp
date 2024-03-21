@@ -1,11 +1,4 @@
-﻿using PostalService.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PostalService.Models
+﻿namespace PostalService.Models
 {
     public class Writing
     {
@@ -15,7 +8,7 @@ namespace PostalService.Models
 
         public UniqueId MailId { get; set; }
 
-        public string Tityle { get; set; }
+        public string Title { get; set; }
 
         public DateTime Date {  get; set; }
         
